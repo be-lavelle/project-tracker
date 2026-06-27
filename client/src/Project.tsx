@@ -8,9 +8,10 @@ type ProjectProps = {
     name: string
     description: string,
     id: number
+    refreshList: () => void
 };
 
-export const Project = ({ name, description, id }: ProjectProps) => {
+export const Project = ({ name, description, id, refreshList }: ProjectProps) => {
     const [values, setValues] = React.useState({
         id: 0,
         name: "",
@@ -18,7 +19,8 @@ export const Project = ({ name, description, id }: ProjectProps) => {
     })
     const [focused, setFocused] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
-    const [backgroundColor, setBackgroundColor] = React.useState("#ffffff");
+    const [bodyBackgroundColor, setBodyBackgroundColor] = React.useState("#ffffff");
+    const [headerBackgroundColor, setHeaderBackgroundColor] = React.useState("#ffffff");
 
     React.useEffect(() => {
         setValues({
@@ -29,7 +31,8 @@ export const Project = ({ name, description, id }: ProjectProps) => {
     }, [])
 
     React.useEffect(() => {
-        setBackgroundColor(focused ? "#d5d5d5" : "#ffffff");
+        setBodyBackgroundColor(focused ? "#efefef" : "#ffffff");
+        setHeaderBackgroundColor(focused ? "#dedede" : "#ffffff");
     }, [focused]);
 
     const onExpand = (e, expanded) => {
@@ -39,6 +42,7 @@ export const Project = ({ name, description, id }: ProjectProps) => {
             handleSave();
             setFocused(false);
         } else {
+            handleSave();
             setFocused(false);
         }
     };
@@ -71,6 +75,21 @@ export const Project = ({ name, description, id }: ProjectProps) => {
                 description: values.description
             });
             setEdit(false)
+            setFocused(false)
+            // Handle the successful server response
+            console.log(response.data);
+        } catch (error: any) {
+            // Handle request errors safely
+            console.error('No blep', error.response?.data || error.message);
+        }
+    }
+
+    const handleDelete = async () => {
+        try {
+            const response = await axios.post(`http://localhost:8080/project/${values.id}`);
+            setEdit(false)
+            setFocused(false)
+            refreshList()
             // Handle the successful server response
             console.log(response.data);
         } catch (error: any) {
@@ -86,17 +105,14 @@ export const Project = ({ name, description, id }: ProjectProps) => {
     return (
         <>
             <ClickAwayListener onClickAway={() => {
-                if (focused) {
-                    setFocused(false);
-                }
+                handleSave()
+                setFocused(false);
                 setEdit(false)
             }} mouseEvent="onMouseDown" disableReactTree={true}>
 
                 <Accordion
                     sx={{
-                        mb: 0,
-                        width: "100%",
-                        backgroundColor: backgroundColor,
+                        padding: "10px",
                     }}
                     slotProps={{ transition: { unmountOnExit: true } }}
                     onChange={onExpand}
@@ -107,7 +123,9 @@ export const Project = ({ name, description, id }: ProjectProps) => {
                         expandIcon={<ArrowDropDownIcon />}
                         aria-controls="panel1-content"
                         id="panel1-header"
-                        sx={{ width: "100%", justifyContent: "center", display: "flex" }}
+                        sx={{
+                            width: "100%", justifyContent: "center", display: "flex", backgroundColor: headerBackgroundColor,
+                        }}
                     >
                         {!edit && <Typography>
                             {values.name}
@@ -121,39 +139,63 @@ export const Project = ({ name, description, id }: ProjectProps) => {
                             fullWidth
                         />}
                     </AccordionSummary>
-                    <Grid container spacing={1}>
-                        <FormGroup>
-                            <Box component="form">
-                                {!edit && <Typography>
-                                    {values.description}
-                                </Typography>}
-                                {edit && <TextField
-                                    name={"#description" + name}
-                                    value={values.description}
-                                    onChange={onChange}
-                                    placeholder="project"
-                                    label="project"
-                                    fullWidth
-                                    multiline
-                                    rows={4}
-                                />}
-                                <FormHelperText>
-                                </FormHelperText>
-                            </Box>
-
+                    <Grid container spacing={1} sx={{ backgroundColor: bodyBackgroundColor }}>
+                        <Grid size={12} sx={{ margin: "10px" }}>
+                            <FormGroup>
+                                <Box component="form">
+                                    {!edit && <Typography>
+                                        {values.description}
+                                    </Typography>}
+                                    {edit && <TextField
+                                        name={"#description" + name}
+                                        value={values.description}
+                                        onChange={onChange}
+                                        placeholder="project"
+                                        label="project"
+                                        fullWidth
+                                        multiline
+                                        rows={4}
+                                    />}
+                                    <FormHelperText>
+                                    </FormHelperText>
+                                </Box>
+                            </FormGroup>
+                        </Grid>
+                        <Grid size={6} sx={{ padding: "10px" }}>
                             <Button
                                 variant="contained"
                                 onClick={handleEdit}
                             >
                                 Edit
                             </Button>
+                        </Grid>
+
+                        <Grid size={6} sx={{ padding: "10px" }}>
                             <Button
                                 variant="contained"
                                 onClick={handleSave}
                             >
                                 Save
                             </Button>
-                        </FormGroup>
+                        </Grid>
+                        <Grid size={6} sx={{ padding: "10px" }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleDelete}
+                            >
+                                Delete
+                            </Button>
+                        </Grid>
+
+                        <Grid size={6} sx={{ padding: "10px" }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleSave}
+                            >
+                                Save
+                            </Button>
+                        </Grid>
+
                     </Grid>
                 </Accordion>
             </ClickAwayListener>
