@@ -3,19 +3,23 @@ import React from "react";
 import { Accordion, AccordionSummary, Box, Button, ClickAwayListener, FormGroup, FormHelperText, Grid, TextField, Typography } from '@mui/material'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import axios from 'axios';
+import { ArrowDownward, ArrowUpward } from '@mui/icons-material';
 
 type ProjectProps = {
     name: string
-    description: string,
+    description: string
+    order: number
     id: number
+    length: number
     refreshList: () => void
 };
 
-export const Project = ({ name, description, id, refreshList }: ProjectProps) => {
+export const Project = ({ name, description, id, order, length, refreshList }: ProjectProps) => {
     const [values, setValues] = React.useState({
         id: 0,
         name: "",
-        description: ""
+        description: "",
+        order: 0
     })
     const [focused, setFocused] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
@@ -23,12 +27,14 @@ export const Project = ({ name, description, id, refreshList }: ProjectProps) =>
     const [headerBackgroundColor, setHeaderBackgroundColor] = React.useState("#ffffff");
 
     React.useEffect(() => {
+        console.log("HERETES")
         setValues({
             id: id,
             name: name,
-            description: description
+            description: description,
+            order: order
         })
-    }, [])
+    }, [id, name, description, order])
 
     React.useEffect(() => {
         setBodyBackgroundColor(focused ? "#efefef" : "#ffffff");
@@ -39,10 +45,8 @@ export const Project = ({ name, description, id, refreshList }: ProjectProps) =>
         if (expanded) {
             setFocused(true);
         } else if (edit) {
-            handleSave();
-            setFocused(false);
+            setFocused(true);
         } else {
-            handleSave();
             setFocused(false);
         }
     };
@@ -50,7 +54,7 @@ export const Project = ({ name, description, id, refreshList }: ProjectProps) =>
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
         console.log(value.split("#name"))
-        let newValues = { name: "", description: "", id: values.id }
+        let newValues = { name: "", description: "", id: values.id, order: values.order }
         if (name.startsWith("#name")) {
             newValues = {
                 ...values,
@@ -72,7 +76,8 @@ export const Project = ({ name, description, id, refreshList }: ProjectProps) =>
             const response = await axios.post('http://localhost:8080/project', {
                 id: values.id,
                 name: values.name,
-                description: values.description
+                description: values.description,
+                order: values.order
             });
             setEdit(false)
             setFocused(false)
@@ -102,10 +107,39 @@ export const Project = ({ name, description, id, refreshList }: ProjectProps) =>
         setEdit(true)
     }
 
+    const handleUppies = async () => {
+        if (values.order > 1) {
+            await axios.post(`http://localhost:8080/reorder/`, { order: values.order - 1, id: values.id, direction: "uppies" }).then((data) => {
+                setEdit(false)
+                setFocused(false)
+
+            })
+        }
+        refreshList()
+        setValues({
+            ...values,
+            order
+        })
+    }
+
+    const handleDownsies = async () => {
+        if (values.order < length) {
+            await axios.post(`http://localhost:8080/reorder/`, { order: parseInt(values.order) + 1, id: values.id, direction: "downsies" }).then((data) => {
+                setEdit(false)
+                setFocused(false)
+
+            })
+        }
+        refreshList()
+        setValues({
+            ...values,
+            order
+        })
+    }
+
     return (
         <>
             <ClickAwayListener onClickAway={() => {
-                handleSave()
                 setFocused(false);
                 setEdit(false)
             }} mouseEvent="onMouseDown" disableReactTree={true}>
@@ -187,15 +221,30 @@ export const Project = ({ name, description, id, refreshList }: ProjectProps) =>
                             </Button>
                         </Grid>
 
-                        <Grid size={6} sx={{ padding: "10px" }}>
+                        <Grid size={3} sx={{ padding: "10px" }}>
                             <Button
                                 variant="contained"
-                                onClick={handleSave}
+                                onClick={handleUppies}
+                                disabled={values.order < 2}
                             >
-                                Save
+                                <ArrowUpward />
                             </Button>
                         </Grid>
-
+                        <Grid size={3} sx={{ padding: "10px" }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleDownsies}
+                                disabled={values.order >= length}
+                            >
+                                <ArrowDownward />
+                            </Button>
+                        </Grid>
+                        <Grid size={12} sx={{ padding: "10px" }}>
+                            VALUES:{values.order}
+                            ORDER:{order}
+                            ID:{values.id}
+                            LENGTH: {length}
+                        </Grid>
                     </Grid>
                 </Accordion>
             </ClickAwayListener>

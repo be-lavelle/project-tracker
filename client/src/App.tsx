@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import './App.css'
 import { Projects } from './Projects'
-import { Grid } from '@mui/material';
 import axios from 'axios';
 
 export const App = () => {
@@ -12,7 +11,11 @@ export const App = () => {
       .get(`http://localhost:8080/projectData`)
       .then((data) => {
         if (data.data.error === "") {
-          setProjectData({ projects: data.data.projects })
+          setProjectData({
+            projects: data.data.projects.sort((a: { order: number; }, b: { order: number; }) => {
+              return a.order - b.order
+            })
+          })
         }
         console.log(data)
       });
@@ -20,13 +23,17 @@ export const App = () => {
 
   const handleAdd = async () => {
     try {
-      const response = await axios.post('http://localhost:8080/addProject', {});
+      const response = await axios.post(`http://localhost:8080/addProject/${projectData.projects.length}`, {});
       // Handle the successful server response
       console.log(response.data);
 
       let projects = projectData.projects
       projects.push(response.data)
-      setProjectData({ projects })
+      setProjectData({
+        projects: projects.sort((a: { order: number; }, b: { order: number; }) => {
+          return a.order - b.order
+        })
+      })
     } catch (error: any) {
       // Handle request errors safely
       console.error('No blep', error.response?.data || error.message);
@@ -39,7 +46,11 @@ export const App = () => {
       .get(`http://localhost:8080/projectData`)
       .then((data) => {
         if (data.data.error === "") {
-          setProjectData({ projects: data.data.projects })
+          setProjectData({
+            projects: data.data.projects.sort((a: { order: number; }, b: { order: number; }) => {
+              return a.order - b.order
+            })
+          })
         }
         console.log(data)
       });

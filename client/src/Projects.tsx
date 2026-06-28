@@ -1,7 +1,6 @@
 import { Button, Grid } from '@mui/material';
 import './App.css'
 import { Project } from './Project';
-import axios from 'axios';
 
 type FormInputProps = {
     projectData: any,
@@ -13,8 +12,10 @@ export const Projects = ({ projectData, handleAdd, refreshList }: FormInputProps
     if (!projectData) {
         return <></>
     }
+
     let projects = projectData.map((project: any) => {
-        return <Project key={project.id} name={project.name} description={project.description} id={project.id} refreshList={refreshList} />
+        console.log("MAPPINGHERE", project)
+        return <Project key={project.id} name={project.name} description={project.description} id={project.id} order={project.order} length={projectData.length} refreshList={refreshList} />
     })
 
     return (
