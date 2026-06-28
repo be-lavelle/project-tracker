@@ -27,7 +27,6 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
     const [headerBackgroundColor, setHeaderBackgroundColor] = React.useState("#ffffff");
 
     React.useEffect(() => {
-        console.log("HERETES")
         setValues({
             id: id,
             name: name,
@@ -91,7 +90,7 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
 
     const handleDelete = async () => {
         try {
-            const response = await axios.post(`http://localhost:8080/project/${values.id}`);
+            const response = await axios.delete(`http://localhost:8080/project/${values.id}/order/${values.order}`);
             setEdit(false)
             setFocused(false)
             refreshList()

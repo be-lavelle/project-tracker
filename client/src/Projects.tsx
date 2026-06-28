@@ -14,7 +14,6 @@ export const Projects = ({ projectData, handleAdd, refreshList }: FormInputProps
     }
 
     let projects = projectData.map((project: any) => {
-        console.log("MAPPINGHERE", project)
         return <Project key={project.id} name={project.name} description={project.description} id={project.id} order={project.order} length={projectData.length} refreshList={refreshList} />
     })
 

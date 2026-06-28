@@ -13,36 +13,16 @@ app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });
 
-const filename = "projectData.txt"
+const filename = "projectData.json"
 app.get('/projectData', (req, res) => {
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
             console.error('Error reading file:', err);
-            res.send({ projects: [], error: 'Error reading projectData.txt' });;
+            res.send({ projects: [], error: `Error reading ${filename}` });;
         }
     }).then((data) => {
-        const lines = data.split("\n")
-        let projects = []
-        let newProject = {}
-        lines.forEach((line, index) => {
-            if (line.startsWith("Name")) {
-                newProject.name = line.split("Name: ")[1]
-            }
-            if (line.startsWith("Description")) {
-                newProject.description = line.split("Description: ")[1]
-            }
-            if (line.startsWith("id")) {
-                newProject.id = line.split("id: ")[1]
-            }
-            if (line.startsWith("order")) {
-                newProject.order = line.split("order: ")[1]
-            }
-            if (line.startsWith("---")) {
-                projects.push(newProject)
-                newProject = {}
-            }
-        })
-        res.send({ projects, error: "" });
+        const json = JSON.parse(data)
+        res.send({ projects: json, error: "" });
     })
 });
 
@@ -54,62 +34,27 @@ app.post('/reorder', (req, res) => {
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
             console.error('Error reading file:', err);
-            res.send({ projects: [], error: 'Error reading projectData.txt' });;
+            res.send({ projects: [], error: `Error reading ${filename}` });;
         }
     }).then((data) => {
-        const lines = data.split("\n")
-        let projects = []
-        let name = ""
-        let description = ""
-        let currentId = 0
-        let order = 0
-        lines.forEach((line, index) => {
-
-            if (line.startsWith("Name")) {
-                name = line.split("Name: ")[1]
+        const json = JSON.parse(data)
+        const reorderedProjects = []
+        json.forEach((project) => {
+            let newProject = { name: project.name, description: project.description, id: project.id, order: project.order }
+            if (project.id === id) {
+                newProject.order = parseInt(newOrder)
             }
-            if (line.startsWith("Description")) {
-                description = line.split("Description: ")[1]
-            }
-            if (line.startsWith("id")) {
-                currentId = line.split("id: ")[1]
-            }
-            if (line.startsWith("order")) {
-                order = Math.floor(index / 5) + 1
-                if (order === newOrder) {
-                    if (uppiesOrDownsies === "uppies") {
-                        order = parseInt(newOrder) + 1
-                    } else {
-                        order = parseInt(newOrder) - 1
-                    }
-                }
-            }
-            if (line.startsWith("---")) {
-                let updatedProject = {
-                    name,
-                    description,
-                }
-                if (currentId === id) {
-                    updatedProject = {
-                        ...updatedProject,
-                        id,
-                        order: newOrder
-                    }
+            if (project.order === newOrder) {
+                if (uppiesOrDownsies === "uppies") {
+                    newProject.order = parseInt(newOrder) + 1
                 } else {
-                    updatedProject = {
-                        ...updatedProject,
-                        id: currentId,
-                        order
-                    }
+                    newProject.order = parseInt(newOrder) - 1
                 }
-                projects.push(updatedProject)
             }
+            reorderedProjects.push(newProject)
         })
-        let projectString = ""
-        projects.forEach((project) => {
-            projectString += `id: ${project.id}\nName: ${project.name}\nDescription: ${project.description}\norder: ${project.order}\n------\n`
-        })
-        fs.writeFile(filename, projectString, function (err) {
+        let jsonString = JSON.stringify(reorderedProjects)
+        fs.writeFile(filename, jsonString, function (err) {
             if (err) {
                 return console.log(err);
             }
@@ -123,50 +68,21 @@ app.post('/project', (req, res) => {
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
             console.error('Error reading file:', err);
-            res.send({ projects: [], error: 'Error reading projectData.txt' });;
+            res.send({ projects: [], error: `Error reading ${filename}` });;
         }
     }).then((data) => {
-        const lines = data.split("\n")
-        let name = ""
-        let description = ""
-        let currentId = 0
-        let order = 0
-        let projects = []
-        lines.forEach((line, index) => {
-            if (line.startsWith("Name") && name === "") {
-                name = line.split("Name: ")[1]
+        const json = JSON.parse(data)
+        const reorderedProjects = []
+        json.forEach((project) => {
+            let newProject = { name: project.name, description: project.description, id: project.id, order: project.order }
+            if (project.id === req.body.id) {
+                newProject.name = req.body.name
+                newProject.description = req.body.description
             }
-            if (line.startsWith("Description") && description === "") {
-                description = line.split("Description: ")[1]
-            }
-            if (line.startsWith("id")) {
-                currentId = line.split("id: ")[1]
-            }
-            if (currentId === req.body.id) {
-                name = req.body.name
-                description = req.body.description
-            }
-            if (line.startsWith("order")) {
-                order = Math.floor(index / 5) + 1
-            }
-            if (line.startsWith("---")) {
-                projects.push({
-                    name,
-                    description,
-                    order,
-                    id: currentId
-                })
-                name = ""
-                description = ""
-                currentId = 0
-                order = 0
-            }
+            reorderedProjects.push(newProject)
         })
-        let projectString = ""
-        projects.forEach((project) => {
-            projectString += `id: ${project.id}\nName: ${project.name}\nDescription: ${project.description}\norder: ${project.order}\n------\n`
-        })
-        fs.writeFile(filename, projectString, function (err) {
+        let jsonString = JSON.stringify(reorderedProjects)
+        fs.writeFile(filename, jsonString, function (err) {
             if (err) {
                 return console.log(err);
             }
@@ -177,81 +93,56 @@ app.post('/project', (req, res) => {
 })
 
 app.post('/addProject/:length', (req, res) => {
-    let id = randomUUID()
     let length = req.params.length
-    let projectString = `id: ${id}\nName: Name\nDescription: Description\norder: ${parseInt(length) + 1}\n------\n`
-    fs.appendFile(filename, projectString, function (err) {
+    const newProject = {
+        id: randomUUID(),
+        name: "NAME",
+        description: "DESCRIPTION",
+        order: parseInt(length) + 1
+    }
+    fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
-            return console.log(err);
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
         }
-        console.log("Saved!");
-    }).then(() => {
-        res.send({
-            id: id,
-            name: "Name",
-            description: "Description",
-            order: length
+    }).then((data) => {
+        const json = JSON.parse(data)
+        json.push(newProject)
+        let jsonString = JSON.stringify(json)
+        fs.writeFile(filename, jsonString, function (err) {
+            if (err) {
+                return console.log(err);
+            }
+            console.log("Saved!");
         });
     })
+    res.send(newProject)
+
 });
 
-app.post('/project/:id', (req, res) => {
+app.delete('/project/:id/order/:order', (req, res) => {
     const id = req.params.id;
+    const order = req.params.order;
 
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
             console.error('Error reading file:', err);
-            res.send({ projects: [], error: 'Error reading projectData.txt' });;
+            res.send({ projects: [], error: `Error reading ${filename}` });;
         }
     }).then((data) => {
-        const lines = data.split("\n")
-        let name = ""
-        let description = ""
-        let currentId = 0
-        let order = 0
-        let projects = []
-        let orderToDelete = 1000000000
-        lines.forEach((line, index) => {
-            if (line.startsWith("Name") && name === "") {
-                name = line.split("Name: ")[1]
-            }
-            if (line.startsWith("Description") && description === "") {
-                description = line.split("Description: ")[1]
-            }
-            if (line.startsWith("id")) {
-                currentId = line.split("id: ")[1]
-            }
-            if (line.startsWith("order")) {
-                order = Math.floor(index / 5) + 1
-                if (order > orderToDelete) {
-                    order -= 1
+        const json = JSON.parse(data)
+        const filtered = []
+        json.forEach((project) => {
+            if (project.id !== id) {
+                let updatedProject = { ...project }
+                if (project.order > order) {
+                    updatedProject.order -= 1
                 }
-            }
-            if (currentId === id) {
-                name = "#toDelete"
-                description = "#toDelete"
-                orderToDelete = Math.floor(index / 5) + 1
-            }
-            if (line.startsWith("---")) {
-                projects.push({
-                    name,
-                    description,
-                    id: currentId,
-                    order: order
-                })
-                name = ""
-                description = ""
-                currentId = 0
-                order = 0
+                filtered.push(updatedProject)
             }
         })
-        let projectString = ""
-        projects.forEach((project) => {
-            if (project.name !== "#toDelete") {
-                projectString += `id: ${project.id}\nName: ${project.name}\nDescription: ${project.description}\norder: ${project.order}\n------\n`
-            }
-        })
-        fs.writeFile(filename, projectString, function (err) {
+        let jsonString = JSON.stringify(filtered)
+        fs.writeFile(filename, jsonString, function (err) {
             if (err) {
                 return console.log(err);
             }
