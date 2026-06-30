@@ -2,19 +2,24 @@ import { Button, Grid } from '@mui/material';
 import './App.css'
 import { Project } from './Project';
 
-type FormInputProps = {
-    projectData: any,
-    handleAdd: () => {}
+type ColumnProps = {
+    columnData: any,
+    columnName: string
+    handleAdd: any,
     refreshList: () => void
 };
 
-export const Projects = ({ projectData, handleAdd, refreshList }: FormInputProps) => {
-    if (!projectData) {
+export const Column = ({ columnData, handleAdd, refreshList, columnName }: ColumnProps) => {
+    console.log(columnData)
+
+    if (!columnData) {
         return <></>
     }
 
-    let projects = projectData.map((project: any) => {
-        return <Project key={project.id} name={project.name} description={project.description} id={project.id} order={project.order} length={projectData.length} refreshList={refreshList} />
+    let projects = columnData.sort((a: { order: number; }, b: { order: number; }) => {
+        return a.order - b.order
+    }).map((project: any) => {
+        return <Project key={project.id} name={project.name} description={project.description} id={project.id} order={project.order} length={columnData.length} refreshList={refreshList} />
     })
 
     return (
@@ -34,7 +39,7 @@ export const Projects = ({ projectData, handleAdd, refreshList }: FormInputProps
                     <Button
                         sx={{ margin: "10px" }}
                         variant="contained"
-                        onClick={handleAdd}
+                        onClick={() => { handleAdd(columnName) }}
                     >
                         Add
                     </Button>

@@ -1,44 +1,20 @@
 import React, { useEffect } from 'react';
 import './App.css'
-import { Projects } from './Projects'
+import { Columns } from './Columns.tsx'
 import axios from 'axios';
 
 export const App = () => {
-  const [projectData, setProjectData] = React.useState<any>({ projects: [] })
+  const [columns, setColumns] = React.useState<any>({})
 
   useEffect(() => {
     axios
       .get(`http://localhost:8080/projectData`)
       .then((data) => {
-        if (data.data.error === "") {
-          setProjectData({
-            projects: data.data.projects.sort((a: { order: number; }, b: { order: number; }) => {
-              return a.order - b.order
-            })
-          })
+        if (data.data.error === "" && data.data.columns) {
+          setColumns({ columns: data.data.columns })
         }
-        console.log(data)
       });
   }, [])
-
-  const handleAdd = async () => {
-    try {
-      const response = await axios.post(`http://localhost:8080/addProject/${projectData.projects.length}`, {});
-      // Handle the successful server response
-      console.log(response.data);
-
-      let projects = projectData.projects
-      projects.push(response.data)
-      setProjectData({
-        projects: projects.sort((a: { order: number; }, b: { order: number; }) => {
-          return a.order - b.order
-        })
-      })
-    } catch (error: any) {
-      // Handle request errors safely
-      console.error('No blep', error.response?.data || error.message);
-    }
-  }
 
   const refreshList = () => {
     console.log("HERE")
@@ -46,11 +22,7 @@ export const App = () => {
       .get(`http://localhost:8080/projectData`)
       .then((data) => {
         if (data.data.error === "") {
-          setProjectData({
-            projects: data.data.projects.sort((a: { order: number; }, b: { order: number; }) => {
-              return a.order - b.order
-            })
-          })
+          setColumns({ columns: data.data.columns })
         }
         console.log(data)
       });
@@ -58,7 +30,7 @@ export const App = () => {
 
   return (
     <>
-      <Projects projectData={projectData.projects} handleAdd={handleAdd} refreshList={refreshList} />
+      {<Columns columnData={columns} refreshList={refreshList}></Columns>}
     </>
   )
 }

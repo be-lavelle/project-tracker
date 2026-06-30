@@ -52,7 +52,6 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        console.log(value.split("#name"))
         let newValues = { name: "", description: "", id: values.id, order: values.order }
         if (name.startsWith("#name")) {
             newValues = {
@@ -80,6 +79,7 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
             });
             setEdit(false)
             setFocused(false)
+            refreshList()
             // Handle the successful server response
             console.log(response.data);
         } catch (error: any) {
@@ -111,28 +111,26 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
             await axios.post(`http://localhost:8080/reorder/`, { order: values.order - 1, id: values.id, direction: "uppies" }).then((data) => {
                 setEdit(false)
                 setFocused(false)
-
             })
         }
         refreshList()
         setValues({
             ...values,
-            order
+            order: values.order + 1
         })
     }
 
     const handleDownsies = async () => {
         if (values.order < length) {
-            await axios.post(`http://localhost:8080/reorder/`, { order: parseInt(values.order) + 1, id: values.id, direction: "downsies" }).then((data) => {
+            await axios.post(`http://localhost:8080/reorder/`, { order: values.order + 1, id: values.id, direction: "downsies" }).then((data) => {
                 setEdit(false)
                 setFocused(false)
-
             })
         }
         refreshList()
         setValues({
             ...values,
-            order
+            order: values.order + 1
         })
     }
 
@@ -140,7 +138,8 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
         <>
             <ClickAwayListener onClickAway={() => {
                 setFocused(false);
-                setEdit(false)
+                setEdit(false);
+                handleSave();
             }} mouseEvent="onMouseDown" disableReactTree={true}>
 
                 <Accordion
@@ -224,7 +223,7 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
                             <Button
                                 variant="contained"
                                 onClick={handleUppies}
-                                disabled={values.order < 2}
+                                disabled={values.order < 2 || edit}
                             >
                                 <ArrowUpward />
                             </Button>
@@ -233,7 +232,7 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
                             <Button
                                 variant="contained"
                                 onClick={handleDownsies}
-                                disabled={values.order >= length}
+                                disabled={values.order >= length || edit}
                             >
                                 <ArrowDownward />
                             </Button>
