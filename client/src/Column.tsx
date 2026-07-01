@@ -1,6 +1,7 @@
 import { Button, Grid } from '@mui/material';
 import './App.css'
 import { Project } from './Project';
+import AddIcon from '@mui/icons-material/Add';
 
 type ColumnProps = {
     columnData: any,
@@ -24,26 +25,26 @@ export const Column = ({ columnData, handleAdd, refreshList, columnName }: Colum
 
     return (
         <>
-            <Grid container spacing={1} sx={{ paddingLeft: 4, paddingRight: 4 }}>
-                <Grid
-                    size={{ md: 4, sm: 12 }}
-                    sx={{
-                        border: "3px #62626221",
-                        borderStyle: "solid",
-                        borderRadius: "2px",
-                        overflow: "auto",
-                        padding: "6px"
-                    }}
+            <Grid
+                size={{ md: 4, sm: 12 }}
+                sx={{
+                    border: "3px #62626221",
+                    borderStyle: "solid",
+                    borderRadius: "2px",
+                    overflow: "auto",
+                    padding: "10px",
+                    backgroundColor: "#ffedf9"
+                }}
+            >
+                {projects}
+                <Button
+                    sx={{ margin: "10px", padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
+
+                    variant="contained"
+                    onClick={() => { handleAdd(columnName) }}
                 >
-                    {projects}
-                    <Button
-                        sx={{ margin: "10px" }}
-                        variant="contained"
-                        onClick={() => { handleAdd(columnName) }}
-                    >
-                        Add
-                    </Button>
-                </Grid>
+                    <AddIcon />
+                </Button>
             </Grid>
         </>
     )

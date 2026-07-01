@@ -1,6 +1,7 @@
 import axios from 'axios';
 import './App.css'
 import { Column } from './Column';
+import Grid from '@mui/material/Grid';
 
 type ColumnsProps = {
     columnData: any,
@@ -27,7 +28,9 @@ export const Columns = ({ columnData, refreshList }: ColumnsProps) => {
     })
     return (
         <>
-            {columns}
+            <Grid container spacing={1} sx={{ paddingLeft: "10px", paddingRight: "10px" }}>
+                {columns}
+            </Grid>
         </>
     )
 }
