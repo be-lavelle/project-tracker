@@ -9,22 +9,26 @@ type ColumnsProps = {
 };
 
 export const Columns = ({ columnData, refreshList }: ColumnsProps) => {
+    console.log(columnData)
     if (!columnData || !columnData.columns) {
         return <></>
     }
-    const handleAdd = async (columnName: string) => {
+    const handleAdd = async (columnId: string) => {
         try {
-            const response = await axios.post(`http://localhost:8080/addProject/${columnName}`, {});
+            await axios.post(`http://localhost:8080/addProject/${columnId}`, {}).then((response) => {
+                refreshList()
+                console.log(response.data);
+
+            });
             // Handle the successful server response
-            console.log(response.data);
         } catch (error: any) {
             // Handle request errors safely
             console.error('No blep', error.response?.data || error.message);
         }
     }
 
-    const columns = Object.keys(columnData.columns).map((key) => {
-        return <Column columnData={columnData.columns[key]} handleAdd={handleAdd} refreshList={refreshList} columnName={key} key={key}></Column>
+    const columns = columnData.columns.map((column) => {
+        return <Column columnData={column.projects} handleAdd={handleAdd} refreshList={refreshList} columnInfo={{ id: column.id, name: column.name }} key={column.id}></Column>
     })
     return (
         <>

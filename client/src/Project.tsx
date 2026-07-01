@@ -140,7 +140,6 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
             <ClickAwayListener onClickAway={() => {
                 setFocused(false);
                 setEdit(false);
-                handleSave();
             }} mouseEvent="onMouseDown" disableReactTree={true}>
 
                 <Accordion

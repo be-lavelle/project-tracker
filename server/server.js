@@ -22,13 +22,12 @@ app.get('/projectData', (req, res) => {
         }
     }).then((data) => {
         const json = JSON.parse(data)
-        res.send({ columns: json, error: "" });
+        res.send({ columns: json.columns, error: "" });
     })
 });
 
 app.post('/reorder', (req, res) => {
     let newOrder = req.body.order //already altered
-    let id = req.body.id
     let uppiesOrDownsies = req.body.direction
 
     fs.readFile(filename, 'utf8', (err, data) => {
@@ -37,13 +36,14 @@ app.post('/reorder', (req, res) => {
             res.send({ projects: [], error: `Error reading ${filename}` });;
         }
     }).then((data) => {
+
         const json = JSON.parse(data)
         let newJson = {}
-        Object.keys(json).forEach((column) => {
-            let reorderedProjects = []
-            json[column].forEach((project) => {
+        json.columns.forEach((column) => {
+            let updatedProjects = []
+            column.projects.forEach((project) => {
                 let newProject = { name: project.name, description: project.description, id: project.id, order: project.order }
-                if (project.id === id) {
+                if (project.id === req.body.id) {
                     newProject.order = parseInt(newOrder)
                 }
                 if (project.order === newOrder) {
@@ -53,12 +53,12 @@ app.post('/reorder', (req, res) => {
                         newProject.order = parseInt(newOrder) - 1
                     }
                 }
-                reorderedProjects.push(newProject)
+                updatedProjects.push(newProject)
             })
-            newJson[column] = reorderedProjects
+            column.projects = updatedProjects
         })
-
-        let jsonString = JSON.stringify(newJson)
+        return JSON.stringify(json)
+    }).then((jsonString) => {
         fs.writeFile(filename, jsonString, function (err) {
             if (err) {
                 return console.log(err);
@@ -78,9 +78,9 @@ app.post('/project', (req, res) => {
     }).then((data) => {
         const json = JSON.parse(data)
         let newJson = {}
-        Object.keys(json).forEach((column) => {
+        json.columns.forEach((column) => {
             let updatedProjects = []
-            json[column].forEach((project) => {
+            column.projects.forEach((project) => {
                 let newProject = { name: project.name, description: project.description, id: project.id, order: project.order }
                 if (project.id === req.body.id) {
                     newProject.name = req.body.name
@@ -88,9 +88,10 @@ app.post('/project', (req, res) => {
                 }
                 updatedProjects.push(newProject)
             })
-            newJson[column] = updatedProjects
+            column.projects = updatedProjects
         })
-        let jsonString = JSON.stringify(newJson)
+        return JSON.stringify(json)
+    }).then((jsonString) => {
         fs.writeFile(filename, jsonString, function (err) {
             if (err) {
                 return console.log(err);
@@ -101,8 +102,7 @@ app.post('/project', (req, res) => {
     res.send({ message: "Updated" })
 })
 
-app.post('/addProject/:columnName', (req, res) => {
-    let column = req.params.columnName
+app.post('/column', (req, res) => {
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
             console.error('Error reading file:', err);
@@ -110,16 +110,14 @@ app.post('/addProject/:columnName', (req, res) => {
         }
     }).then((data) => {
         const json = JSON.parse(data)
-        console.log(column)
-        const columnToAddTo = json[column]
-        const newProject = {
-            id: randomUUID(),
-            name: "NAME",
-            description: "DESCRIPTION",
-            order: columnToAddTo.length + 1
-        }
-        columnToAddTo.push(newProject)
-        let jsonString = JSON.stringify(json)
+        let newJson = {}
+        json.columns.forEach((column) => {
+            if (column.id === req.body.id) {
+                column.name = req.body.name
+            }
+        })
+        return JSON.stringify(json)
+    }).then((jsonString) => {
         fs.writeFile(filename, jsonString, function (err) {
             if (err) {
                 return console.log(err);
@@ -127,8 +125,39 @@ app.post('/addProject/:columnName', (req, res) => {
             console.log("Saved!");
         });
     })
-    res.send({ message: "Added" })
+    res.send({ message: "Updated" })
+})
 
+app.post('/addProject/:columnId', (req, res) => {
+    let id = req.params.columnId
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+    }).then((data) => {
+        const json = JSON.parse(data)
+        json.columns.forEach((column) => {
+            if (column.id === id) {
+                const newProject = {
+                    id: randomUUID(),
+                    name: "NAME",
+                    description: "DESCRIPTION",
+                    order: column.projects.length + 1
+                }
+                column.projects.push(newProject)
+            }
+        })
+        return JSON.stringify(json)
+    }).then((jsonData) => {
+        fs.writeFile(filename, jsonData, function (err) {
+            if (err) {
+                return console.log(err);
+            }
+            console.log("Saved!");
+        });
+    })
+    res.send({ message: "Added" })
 });
 
 app.delete('/project/:id/order/:order', (req, res) => {
@@ -142,10 +171,10 @@ app.delete('/project/:id/order/:order', (req, res) => {
         }
     }).then((data) => {
         const json = JSON.parse(data)
-        let newJson = {}
-        Object.keys(json).forEach((column) => {
+
+        json.columns.forEach((column) => {
             let filtered = []
-            json[column].forEach((project) => {
+            column.projects.forEach((project) => {
                 if (project.id !== id) {
                     let updatedProject = { ...project }
                     if (project.order > order) {
@@ -154,15 +183,16 @@ app.delete('/project/:id/order/:order', (req, res) => {
                     filtered.push(updatedProject)
                 }
             })
-            newJson[column] = filtered
+            column.projects = filtered
         })
-        let jsonString = JSON.stringify(newJson)
+        return JSON.stringify(json)
+    }).then((jsonString) => {
         fs.writeFile(filename, jsonString, function (err) {
             if (err) {
                 return console.log(err);
             }
             console.log("Saved!");
         });
-        res.send(`Deleted ${id}`)
+        res.send({ message: "DELETED" });
     })
 });

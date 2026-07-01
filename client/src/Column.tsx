@@ -1,20 +1,51 @@
-import { Button, Grid } from '@mui/material';
+import { Button, ClickAwayListener, Grid, TextField, Typography } from '@mui/material';
 import './App.css'
 import { Project } from './Project';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import React from 'react';
+import axios from 'axios';
 
 type ColumnProps = {
     columnData: any,
-    columnName: string
+    columnInfo: any,
     handleAdd: any,
     refreshList: () => void
 };
 
-export const Column = ({ columnData, handleAdd, refreshList, columnName }: ColumnProps) => {
+export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: ColumnProps) => {
     console.log(columnData)
+    const [edit, setEdit] = React.useState(false);
+    const [name, setName] = React.useState("");
+
+    React.useEffect(() => {
+        setName(columnInfo.name)
+    }, [columnInfo])
 
     if (!columnData) {
         return <></>
+    }
+
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = event.target;
+        setName(value);
+    };
+
+    const handleSave = async () => {
+        try {
+            const response = await axios.post('http://localhost:8080/column', {
+                name: name,
+                id: columnInfo.id
+            });
+            setEdit(false)
+            refreshList()
+            // Handle the successful server response
+            console.log(response.data);
+        } catch (error: any) {
+            // Handle request errors safely
+            console.error('No blep', error.response?.data || error.message);
+        }
     }
 
     let projects = columnData.sort((a: { order: number; }, b: { order: number; }) => {
@@ -23,29 +54,58 @@ export const Column = ({ columnData, handleAdd, refreshList, columnName }: Colum
         return <Project key={project.id} name={project.name} description={project.description} id={project.id} order={project.order} length={columnData.length} refreshList={refreshList} />
     })
 
+
+
     return (
         <>
-            <Grid
-                size={{ md: 4, sm: 12 }}
-                sx={{
-                    border: "3px #62626221",
-                    borderStyle: "solid",
-                    borderRadius: "2px",
-                    overflow: "auto",
-                    padding: "10px",
-                    backgroundColor: "#ffedf9"
-                }}
-            >
-                {projects}
-                <Button
-                    sx={{ margin: "10px", padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
-
-                    variant="contained"
-                    onClick={() => { handleAdd(columnName) }}
+            <ClickAwayListener onClickAway={() => {
+                setEdit(false);
+            }} mouseEvent="onMouseDown" disableReactTree={true}>
+                <Grid
+                    size={{ md: 4, sm: 12 }}
+                    sx={{
+                        border: "3px #62626221",
+                        borderStyle: "solid",
+                        borderRadius: "2px",
+                        overflow: "auto",
+                        padding: "10px",
+                        backgroundColor: "#ffedf9"
+                    }}
                 >
-                    <AddIcon />
-                </Button>
-            </Grid>
+                    <Grid container spacing={1}>
+                        <Grid size={9} sx={{ display: "flex", justifyContent: "left", alignItems: "center", padding: "10px" }}>
+                            {!edit && <Typography variant="h5" >{columnInfo.name}</Typography>}
+                            {edit && <TextField
+                                name={"#columnName" + columnInfo.name}
+                                value={name}
+                                onChange={onChange}
+                                placeholder="column"
+                                label="column"
+                                fullWidth
+                            />}</Grid>
+                        <Grid size={3}>
+                            <Button sx={{ margin: "10px", padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
+
+                                variant="contained"
+                                onClick={() => { edit ? handleSave() : setEdit(true) }}
+                            >
+                                {!edit && <EditIcon />}
+                                {edit && <SaveIcon />}
+                            </Button>
+                        </Grid>
+                    </Grid>
+
+                    {projects}
+                    <Button
+                        sx={{ margin: "10px", padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
+
+                        variant="contained"
+                        onClick={() => { handleAdd(columnInfo.id) }}
+                    >
+                        <AddIcon />
+                    </Button>
+                </Grid>
+            </ClickAwayListener>
         </>
     )
 }

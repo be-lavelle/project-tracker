@@ -10,6 +10,7 @@ export const App = () => {
     axios
       .get(`http://localhost:8080/projectData`)
       .then((data) => {
+        console.log(data.data.columns)
         if (data.data.error === "" && data.data.columns) {
           setColumns({ columns: data.data.columns })
         }
