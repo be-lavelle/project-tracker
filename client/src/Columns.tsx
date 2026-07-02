@@ -2,6 +2,9 @@ import axios from 'axios';
 import './App.css'
 import { Column } from './Column';
 import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import AddIcon from '@mui/icons-material/Add';
+
 
 type ColumnsProps = {
     columnData: any,
@@ -27,6 +30,20 @@ export const Columns = ({ columnData, refreshList }: ColumnsProps) => {
         }
     }
 
+    const handleAddColumn = async () => {
+        try {
+            await axios.post(`http://localhost:8080/addColumn`, {}).then((response) => {
+                refreshList()
+                console.log(response.data);
+
+            });
+            // Handle the successful server response
+        } catch (error: any) {
+            // Handle request errors safely
+            console.error('No blep', error.response?.data || error.message);
+        }
+    }
+
     const columns = columnData.columns.map((column) => {
         return <Column columnData={column.projects} handleAdd={handleAdd} refreshList={refreshList} columnInfo={{ id: column.id, name: column.name }} key={column.id}></Column>
     })
@@ -34,6 +51,14 @@ export const Columns = ({ columnData, refreshList }: ColumnsProps) => {
         <>
             <Grid container spacing={1} sx={{ paddingLeft: "10px", paddingRight: "10px" }}>
                 {columns}
+                <Button
+                    sx={{ margin: "10px", padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
+
+                    variant="contained"
+                    onClick={() => { handleAddColumn() }}
+                >
+                    <AddIcon />
+                </Button>
             </Grid>
         </>
     )

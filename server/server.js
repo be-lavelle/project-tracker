@@ -160,6 +160,56 @@ app.post('/addProject/:columnId', (req, res) => {
     res.send({ message: "Added" })
 });
 
+app.post('/addColumn', (req, res) => {
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+    }).then((data) => {
+        const json = JSON.parse(data)
+        json.columns.push({
+            name: "New Column",
+            id: randomUUID(),
+            projects: []
+        })
+        return JSON.stringify(json)
+    }).then((jsonData) => {
+        fs.writeFile(filename, jsonData, function (err) {
+            if (err) {
+                return console.log(err);
+            }
+            console.log("Saved!");
+        });
+    })
+    res.send({ message: "Added" })
+});
+
+app.delete('/column/:id', (req, res) => {
+    const id = req.params.id;
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+    }).then((data) => {
+        const json = JSON.parse(data)
+        let filtered = json.columns.filter((column) => {
+            return column.id !== id
+        })
+        json.columns = filtered
+        return JSON.stringify(json)
+    }).then((jsonData) => {
+        fs.writeFile(filename, jsonData, function (err) {
+            if (err) {
+                return console.log(err);
+            }
+            console.log("Saved!");
+        });
+    })
+    res.send({ message: "Added" })
+});
+
 app.delete('/project/:id/order/:order', (req, res) => {
     const id = req.params.id;
     const order = req.params.order;

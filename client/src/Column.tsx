@@ -3,6 +3,8 @@ import './App.css'
 import { Project } from './Project';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
 import React from 'react';
 import axios from 'axios';
@@ -18,6 +20,7 @@ export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: Colum
     console.log(columnData)
     const [edit, setEdit] = React.useState(false);
     const [name, setName] = React.useState("");
+    const [confirm, setConfirm] = React.useState(false);
 
     React.useEffect(() => {
         setName(columnInfo.name)
@@ -39,6 +42,21 @@ export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: Colum
                 id: columnInfo.id
             });
             setEdit(false)
+            setConfirm(false)
+            refreshList()
+            // Handle the successful server response
+            console.log(response.data);
+        } catch (error: any) {
+            // Handle request errors safely
+            console.error('No blep', error.response?.data || error.message);
+        }
+    }
+
+    const handleDeleteColumn = async () => {
+        try {
+            const response = await axios.delete(`http://localhost:8080/column/${columnInfo.id}`);
+            setEdit(false)
+            setConfirm(false)
             refreshList()
             // Handle the successful server response
             console.log(response.data);
@@ -60,6 +78,7 @@ export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: Colum
         <>
             <ClickAwayListener onClickAway={() => {
                 setEdit(false);
+                setConfirm(false)
             }} mouseEvent="onMouseDown" disableReactTree={true}>
                 <Grid
                     size={{ md: 4, sm: 12 }}
@@ -73,7 +92,7 @@ export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: Colum
                     }}
                 >
                     <Grid container spacing={1}>
-                        <Grid size={9} sx={{ display: "flex", justifyContent: "left", alignItems: "center", padding: "10px" }}>
+                        <Grid size={8} sx={{ display: "flex", justifyContent: "left", alignItems: "center", padding: "10px" }}>
                             {!edit && <Typography variant="h5" >{columnInfo.name}</Typography>}
                             {edit && <TextField
                                 name={"#columnName" + columnInfo.name}
@@ -83,15 +102,29 @@ export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: Colum
                                 label="column"
                                 fullWidth
                             />}</Grid>
-                        <Grid size={3}>
-                            <Button sx={{ margin: "10px", padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
+                        <Grid size={4}>
+                            <Grid container spacing={1}>
+                                <Grid size={6}>
+                                    <Button sx={{ margin: "10px", padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
 
-                                variant="contained"
-                                onClick={() => { edit ? handleSave() : setEdit(true) }}
-                            >
-                                {!edit && <EditIcon />}
-                                {edit && <SaveIcon />}
-                            </Button>
+                                        variant="contained"
+                                        onClick={() => { edit ? handleSave() : setEdit(true) }}
+                                    >
+                                        {!edit && <EditIcon />}
+                                        {edit && <SaveIcon />}
+                                    </Button>
+                                </Grid>
+                                <Grid size={6}>
+                                    <Button sx={{ margin: "10px", padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
+
+                                        variant="contained"
+                                        onClick={() => { confirm ? handleDeleteColumn() : setConfirm(true) }}
+                                    >
+                                        {!confirm && <DeleteIcon />}
+                                        {confirm && <CheckIcon />}
+                                    </Button>
+                                </Grid>
+                            </Grid>
                         </Grid>
                     </Grid>
 

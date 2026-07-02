@@ -5,6 +5,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CheckIcon from '@mui/icons-material/Check';
 import axios from 'axios';
 import { ArrowDownward, ArrowUpward } from '@mui/icons-material';
 
@@ -26,6 +27,7 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
     })
     const [focused, setFocused] = React.useState(false);
     const [edit, setEdit] = React.useState(false);
+    const [confirm, setConfirm] = React.useState(false);
     const [backgroundColor, setBackgroundColor] = React.useState("#fff6fe");
 
     React.useEffect(() => {
@@ -197,34 +199,26 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
                                 </Box>
                             </FormGroup>
                         </Grid>
-                        <Grid size={1}>
+                        <Grid size={2}>
                         </Grid>
                         <Grid size={2} sx={{ padding: "10px" }}>
-                            <Button
-                                variant="contained"
-                                sx={{ padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
-                                onClick={handleEdit}
-                            >
-                                <EditIcon />
-                            </Button>
-                        </Grid>
+                            <Button sx={{ padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
 
-                        <Grid size={2} sx={{ padding: "10px" }}>
-                            <Button
                                 variant="contained"
-                                sx={{ padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
-                                onClick={handleSave}
+                                onClick={() => { edit ? handleSave() : setEdit(true) }}
                             >
-                                <SaveIcon />
+                                {!edit && <EditIcon />}
+                                {edit && <SaveIcon />}
                             </Button>
                         </Grid>
                         <Grid size={2} sx={{ padding: "10px" }}>
-                            <Button
+                            <Button sx={{ padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
+
                                 variant="contained"
-                                sx={{ padding: "6px", minWidth: "20px", backgroundColor: "#ffcbfd", color: "#644f62" }}
-                                onClick={handleDelete}
+                                onClick={() => { confirm ? handleDelete() : setConfirm(true) }}
                             >
-                                <DeleteIcon />
+                                {!confirm && <DeleteIcon />}
+                                {confirm && <CheckIcon />}
                             </Button>
                         </Grid>
 
@@ -248,7 +242,7 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
                                 <ArrowDownward />
                             </Button>
                         </Grid>
-                        <Grid size={1}>
+                        <Grid size={2}>
                         </Grid>
                     </Grid>
                 </Accordion>
