@@ -5,12 +5,11 @@ import axios from 'axios';
 
 export const App = () => {
   const [columns, setColumns] = React.useState<any>({})
-
+  const [allLabels, setAllLabels] = React.useState([])
   useEffect(() => {
     axios
       .get(`http://localhost:8080/projectData`)
       .then((data) => {
-        console.log(data.data.columns)
         if (data.data.error === "" && data.data.columns) {
           setColumns({ columns: data.data.columns })
         }

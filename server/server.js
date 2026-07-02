@@ -42,7 +42,10 @@ app.post('/reorder', (req, res) => {
         json.columns.forEach((column) => {
             let updatedProjects = []
             column.projects.forEach((project) => {
-                let newProject = { name: project.name, description: project.description, id: project.id, order: project.order }
+                let newProject = {
+                    name: project.name, description: project.description, id: project.id, order: project.order,
+                    "labels": []
+                }
                 if (project.id === req.body.id) {
                     newProject.order = parseInt(newOrder)
                 }
@@ -81,7 +84,10 @@ app.post('/project', (req, res) => {
         json.columns.forEach((column) => {
             let updatedProjects = []
             column.projects.forEach((project) => {
-                let newProject = { name: project.name, description: project.description, id: project.id, order: project.order }
+                let newProject = {
+                    name: project.name, description: project.description, id: project.id, order: project.order,
+                    "labels": []
+                }
                 if (project.id === req.body.id) {
                     newProject.name = req.body.name
                     newProject.description = req.body.description
@@ -143,7 +149,8 @@ app.post('/addProject/:columnId', (req, res) => {
                     id: randomUUID(),
                     name: "NAME",
                     description: "DESCRIPTION",
-                    order: column.projects.length + 1
+                    order: column.projects.length + 1,
+                    "labels": []
                 }
                 column.projects.push(newProject)
             }
@@ -274,6 +281,69 @@ app.delete('/project/:id/order/:order', (req, res) => {
                 }
             })
             column.projects = filtered
+        })
+        return JSON.stringify(json)
+    }).then((jsonString) => {
+        fs.writeFile(filename, jsonString, function (err) {
+            if (err) {
+                return console.log(err);
+            }
+            console.log("Saved!");
+        });
+        res.send({ message: "DELETED" });
+    })
+});
+
+app.post('/label', (req, res) => {
+    const id = req.body.id;
+    const label = req.body.label;
+
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+    }).then((data) => {
+        const json = JSON.parse(data)
+        json.columns.forEach((column) => {
+            column.projects.forEach((project) => {
+                if (label !== "" && project.id === id && !project.labels.includes(label)) {
+                    project.labels.push(label)
+                }
+            })
+        })
+        return JSON.stringify(json)
+    }).then((jsonString) => {
+        fs.writeFile(filename, jsonString, function (err) {
+            if (err) {
+                return console.log(err);
+            }
+            console.log("Saved!");
+        });
+        res.send({ message: "DELETED" });
+    })
+});
+
+app.delete('/project/:id/label/:label', (req, res) => {
+    const id = req.params.id;
+    const label = req.params.label;
+
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+    }).then((data) => {
+        const json = JSON.parse(data)
+        json.columns.forEach((column) => {
+            column.projects.forEach((project) => {
+                if (project.id === id) {
+                    project.labels = project.labels.filter((l) => {
+                        return l !== label
+                    })
+                }
+
+            })
         })
         return JSON.stringify(json)
     }).then((jsonString) => {

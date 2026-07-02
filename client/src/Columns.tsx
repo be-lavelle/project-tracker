@@ -45,8 +45,20 @@ export const Columns = ({ columnData, refreshList }: ColumnsProps) => {
     }
 
     const allNames = columnData.columns.map((column) => { return column.name })
+    let allLabels: any[] = []
+
+    columnData.columns.forEach((column) => {
+        column.projects.forEach((project) => {
+            project.labels.forEach((label) => {
+                if (!allLabels.includes(label)) {
+                    allLabels.push(label)
+                }
+            })
+        })
+    })
+
     const columns = columnData.columns.map((column) => {
-        return <Column columnData={column.projects} handleAdd={handleAdd} refreshList={refreshList} columnInfo={{ id: column.id, name: column.name, allNames: allNames }} key={column.id}></Column>
+        return <Column columnData={column.projects} handleAdd={handleAdd} refreshList={refreshList} columnInfo={{ id: column.id, name: column.name, allNames: allNames, allLabels: allLabels }} key={column.id}></Column>
     })
     return (
         <>

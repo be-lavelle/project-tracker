@@ -20,12 +20,10 @@ export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: Colum
     console.log(columnData)
     const [edit, setEdit] = React.useState(false);
     const [name, setName] = React.useState("");
-    const [allNames, setAllNames] = React.useState([]);
     const [confirm, setConfirm] = React.useState(false);
 
     React.useEffect(() => {
         setName(columnInfo.name)
-        setAllNames(columnInfo.allNames)
     }, [columnInfo])
 
     if (!columnData) {
@@ -71,7 +69,7 @@ export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: Colum
     let projects = columnData.sort((a: { order: number; }, b: { order: number; }) => {
         return a.order - b.order
     }).map((project: any) => {
-        return <Project key={project.id} name={project.name} columnInfo={columnInfo} description={project.description} id={project.id} order={project.order} length={columnData.length} refreshList={refreshList} />
+        return <Project key={project.id} name={project.name} columnInfo={columnInfo} description={project.description} id={project.id} order={project.order} length={columnData.length} projectLabels={project.labels} refreshList={refreshList} />
     })
 
 
