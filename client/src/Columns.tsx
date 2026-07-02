@@ -44,8 +44,9 @@ export const Columns = ({ columnData, refreshList }: ColumnsProps) => {
         }
     }
 
+    const allNames = columnData.columns.map((column) => { return column.name })
     const columns = columnData.columns.map((column) => {
-        return <Column columnData={column.projects} handleAdd={handleAdd} refreshList={refreshList} columnInfo={{ id: column.id, name: column.name }} key={column.id}></Column>
+        return <Column columnData={column.projects} handleAdd={handleAdd} refreshList={refreshList} columnInfo={{ id: column.id, name: column.name, allNames: allNames }} key={column.id}></Column>
     })
     return (
         <>

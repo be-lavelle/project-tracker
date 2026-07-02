@@ -1,6 +1,6 @@
 import './App.css'
 import React from "react";
-import { Accordion, AccordionSummary, Box, Button, ClickAwayListener, FormGroup, FormHelperText, Grid, TextField, Typography } from '@mui/material'
+import { Accordion, AccordionSummary, Box, Button, ClickAwayListener, FormGroup, FormHelperText, Grid, NativeSelect, TextField, Typography } from '@mui/material'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -15,10 +15,11 @@ type ProjectProps = {
     order: number
     id: number
     length: number
+    columnInfo: any
     refreshList: () => void
 };
 
-export const Project = ({ name, description, id, order, length, refreshList }: ProjectProps) => {
+export const Project = ({ name, description, id, order, length, columnInfo, refreshList }: ProjectProps) => {
     const [values, setValues] = React.useState({
         id: 0,
         name: "",
@@ -71,6 +72,24 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
         setValues({ ...newValues });
     };
 
+    const handleOnChangeOptions = async (event: any) => {
+        const { value } = event.target;
+        try {
+            const response = await axios.post('http://localhost:8080/switchColumns', {
+                id: values.id,
+                column: value
+            });
+            setEdit(false)
+            setFocused(false)
+            refreshList()
+            // Handle the successful server response
+            console.log(response.data);
+        } catch (error: any) {
+            // Handle request errors safely
+            console.error('No blep', error.response?.data || error.message);
+        }
+    };
+
     const handleSave = async () => {
         console.log(values)
         try {
@@ -105,10 +124,6 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
         }
     }
 
-    const handleEdit = () => {
-        setEdit(true)
-    }
-
     const handleUppies = async () => {
         if (values.order > 1) {
             await axios.post(`http://localhost:8080/reorder/`, { order: values.order - 1, id: values.id, direction: "uppies" }).then((_data) => {
@@ -136,6 +151,20 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
             order: values.order + 1
         })
     }
+
+    const dropdownOptions = columnInfo.allNames.map((name) => {
+        return (
+            <option value={name} key={name}>
+                {name}
+            </option>
+        );
+    });
+
+    const dropdown = <NativeSelect defaultValue={columnInfo.name} onChange={handleOnChangeOptions} sx={{ width: "100%" }}>
+        <option value={columnInfo.name} disabled hidden>{columnInfo.name}</option>
+
+        {dropdownOptions} </NativeSelect>
+
 
     return (
         <>
@@ -177,6 +206,10 @@ export const Project = ({ name, description, id, order, length, refreshList }: P
                         />}
                     </AccordionSummary>
                     <Grid container spacing={1} sx={{ backgroundColor: backgroundColor }}>
+
+                        {edit && <Grid size={12} sx={{ margin: "20px" }}>
+                            {dropdown}
+                        </Grid>}
                         <Grid size={12} sx={{ margin: "10px" }}>
                             <FormGroup>
                                 <Box component="form">

@@ -185,6 +185,46 @@ app.post('/addColumn', (req, res) => {
     res.send({ message: "Added" })
 });
 
+app.post('/switchColumns', (req, res) => {
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+    }).then((data) => {
+        const json = JSON.parse(data)
+        let projectToMove = {}
+        json.columns.forEach((column) => {
+            let updatedProjects = []
+            column.projects.forEach((project) => {
+                if (project.id === req.body.id && column.name !== req.body.column) {
+                    projectToMove = project
+                } else {
+                    updatedProjects.push(project)
+                }
+            })
+            column.projects = updatedProjects
+        })
+        json.columns.forEach((column) => {
+            if (column.name === req.body.column) {
+                column.projects.push({
+                    ...projectToMove,
+                    order: column.projects.length + 1
+                })
+            }
+        })
+        return JSON.stringify(json)
+    }).then((jsonData) => {
+        fs.writeFile(filename, jsonData, function (err) {
+            if (err) {
+                return console.log(err);
+            }
+            console.log("Saved!");
+        });
+    })
+    res.send({ message: "Added" })
+});
+
 app.delete('/column/:id', (req, res) => {
     const id = req.params.id;
     fs.readFile(filename, 'utf8', (err, data) => {
