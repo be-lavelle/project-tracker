@@ -1,0 +1,23 @@
+{
+  "name": "projecttracker",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "server": "cd server && node server.js",
+    "client": "cd client && npm run dev",
+    "server-dependencies": "npm install --prefix server",
+    "client-dependencies": "npm install --prefix client",
+    "install-all": "concurrently \"npm run server-dependencies\" \"npm run client-dependencies\"",
+    "start": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "dependencies": {
+    "server": "^1.0.42"
+  }
+}

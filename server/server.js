@@ -9,11 +9,57 @@ app.use(cors());
 app.use(express.json());
 const port = 8080;
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+//Starting the server.
+
+const server = app.listen(port, () => {
+    console.log(`App listening on port ${port}`);
 });
 
+// File (and backup) where all the data is saved. 
 const filename = "projectData.json"
+const filenameBackup = "projectDataBackup.json"
+
+// Function to handle shutdown safely
+function gracefulShutdown(signal, exitCode) {
+    console.log(`Received ${signal}. Shutting down gracefully...`);
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+        }
+    }).then((data) => {
+        try {
+            const json = JSON.parse(data)
+            if (json.columns) {
+
+                fs.writeFile(filenameBackup, JSON.stringify(json), function (err) {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    console.log("Saved backup!");
+                }).then(() => {
+                    server.close(() => {
+                        console.log('Http server closed.');
+                        // 3. Finally, exit the process with the designated code
+                        process.exit(exitCode);
+                    });
+                })
+            }
+        } catch (error) {
+            console.error('Error reading file:', error);
+        }
+
+    })
+    // Force close after 10 seconds if connections are stuck
+    setTimeout(() => {
+        console.error('Forcing shutdown due to timeout');
+        process.exit(1);
+    }, 10000);
+}
+
+// Listen for system termination signals (e.g., Ctrl+C or Docker stop)
+process.on('SIGINT', () => gracefulShutdown('SIGINT', 0));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM', 0));
+
 app.get('/projectData', (req, res) => {
     fs.readFile(filename, 'utf8', (err, data) => {
         if (err) {
@@ -21,10 +67,42 @@ app.get('/projectData', (req, res) => {
             res.send({ projects: [], error: `Error reading ${filename}` });;
         }
     }).then((data) => {
-        const json = JSON.parse(data)
-        res.send({ columns: json.columns, error: "" });
+        try {
+            const json = JSON.parse(data)
+            res.send({ columns: json.columns, error: "" });
+        } catch (error) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+
     })
 });
+
+app.get('/restore', (req, res) => {
+    fs.readFile(filenameBackup, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+    }).then((data) => {
+        try {
+            const json = JSON.parse(data)
+            if (json.columns) {
+                fs.writeFile(filename, JSON.stringify(json), function (err) {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    console.log("Saved backup!");
+                });
+            }
+            res.send({ columns: json.columns, error: "" });
+        } catch (error) {
+            console.error('Error reading file:', err);
+            res.send({ projects: [], error: `Error reading ${filename}` });;
+        }
+
+    })
+})
 
 app.post('/reorder', (req, res) => {
     let newOrder = req.body.order //already altered
@@ -176,7 +254,7 @@ app.post('/addColumn', (req, res) => {
     }).then((data) => {
         const json = JSON.parse(data)
         json.columns.push({
-            name: "New Column",
+            name: "New List",
             id: randomUUID(),
             projects: []
         })

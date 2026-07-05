@@ -17,7 +17,6 @@ type ColumnProps = {
 };
 
 export const Column = ({ columnData, handleAdd, refreshList, columnInfo }: ColumnProps) => {
-    console.log(columnData)
     const [edit, setEdit] = React.useState(false);
     const [name, setName] = React.useState("");
     const [confirm, setConfirm] = React.useState(false);

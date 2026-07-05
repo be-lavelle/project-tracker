@@ -12,7 +12,6 @@ type ColumnsProps = {
 };
 
 export const Columns = ({ columnData, refreshList }: ColumnsProps) => {
-    console.log(columnData)
     if (!columnData || !columnData.columns) {
         return <></>
     }
